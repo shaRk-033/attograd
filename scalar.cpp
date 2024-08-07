@@ -49,6 +49,26 @@ public:
         return result;
     }
 
+    bool operator==(Scalar<T>& other) {
+        return this->_value == other._value;
+    }
+
+    Scalar<T> exp(){
+        Scalar<T> result(exp(this->_value), {this});
+        result._backward = [this, res_ptr = &result]() {
+            this->_grad += res_ptr->_grad * res_ptr->_value;
+        };
+        return result;
+    }
+
+    Scalar<T> log(){
+        Scalar<T> result(log(this->_value), {this});
+        result._backward = [this, res_ptr = &result]() {
+            this->_grad += res_ptr->_grad / this->_value;
+        };
+        return result;
+    }
+
     void dfs(Scalar<T>* node, set<Scalar<T>*>& children){
         children.insert(node);
         if(node->_children.size() > 0){
@@ -69,18 +89,3 @@ public:
     }
 };
 
-int main() {
-    Scalar<int> a(2);
-    Scalar<int> b(3);
-    Scalar<int> c = a + b;
-    Scalar<int> d = c - a;
-    Scalar<int> e = c * d;
-    e._grad = 1;
-    e.backward();
-    cout << "a: " << a._grad << endl;
-    cout << "b: " << b._grad << endl;
-    cout << "c: " << c._grad << endl;
-    cout << "d: " << d._grad << endl;
-    cout << "e: " << e._grad << endl;
-    return 0;
-}
